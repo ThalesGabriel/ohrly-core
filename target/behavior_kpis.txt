@@ -1,0 +1,33 @@
+Insight: credit_card-AFTERNOON-WEEKEND
+Estado: PRE_INCIDENT
+Comportamento esperado: 15.00 min
+Comportamento atual: 80.57 min
+Desvio: 5.37x acima do esperado
+Persistência: 2 dias/períodos válidos
+Pedidos impactados: 42
+Valor impactado: R$ 7623.29
+Excesso acumulado: 4166.00 minutos
+
+------------------------------------------------------------
+Insight: credit_card-NIGHT-WEEKEND
+Estado: PRE_INCIDENT
+Comportamento esperado: 15.00 min
+Comportamento atual: 69.92 min
+Desvio: 4.66x acima do esperado
+Persistência: 2 dias/períodos válidos
+Pedidos impactados: 44
+Valor impactado: R$ 5066.38
+Excesso acumulado: 3462.00 minutos
+
+------------------------------------------------------------
+Insight: credit_card-NIGHT-BUSINESS_DAY
+Estado: ATTENTION
+Comportamento esperado: 15.00 min
+Comportamento atual: 70.09 min
+Desvio: 4.67x acima do esperado
+Persistência: 1 dias/períodos válidos
+Pedidos impactados: 11
+Valor impactado: R$ 1608.48
+Excesso acumulado: 606.00 minutos
+Memória comportamental: padrão semelhante a episódios históricos críticos. Similaridade: 0.87.
+------------------------------------------------------------
