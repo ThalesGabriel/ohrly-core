@@ -1,4 +1,4 @@
-package org.ohrly.core.domain;
+package org.ohrly.core.olist;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

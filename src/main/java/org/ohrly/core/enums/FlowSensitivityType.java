@@ -1,6 +1,6 @@
 package org.ohrly.core.enums;
 
-public enum FlowSensitivity {
+public enum FlowSensitivityType {
     CONSERVATIVE,
     BALANCED,
     AGGRESSIVE

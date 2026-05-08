@@ -1,13 +1,13 @@
 package org.ohrly.core.factory;
 
-import org.ohrly.core.enums.FlowSensitivity;
+import org.ohrly.core.enums.FlowSensitivityType;
 import org.ohrly.core.valueObjects.BehaviorThresholds;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FlowSensitivityDefaultsFactory {
 
-    public static BehaviorThresholds thresholds(FlowSensitivity sensitivity) {
+    public static BehaviorThresholds thresholds(FlowSensitivityType sensitivity) {
         return switch (sensitivity) {
 
             case CONSERVATIVE ->
@@ -39,7 +39,7 @@ public class FlowSensitivityDefaultsFactory {
         };
     }
 
-    public static int lookbackPeriods(FlowSensitivity sensitivity) {
+    public static int lookbackPeriods(FlowSensitivityType sensitivity) {
         return switch (sensitivity) {
 
             case CONSERVATIVE -> 4;
@@ -48,7 +48,7 @@ public class FlowSensitivityDefaultsFactory {
         };
     }
 
-    public static int minimumVolume(FlowSensitivity sensitivity) {
+    public static int minimumVolume(FlowSensitivityType sensitivity) {
         return switch (sensitivity) {
 
             case CONSERVATIVE -> 50;

@@ -1,6 +1,6 @@
 package org.ohrly.core.enums;
 
-public enum BehaviorState {
+public enum BehaviorStateType {
     NORMAL,
     ATTENTION,
     SUSTAINED_DEGRADATION,

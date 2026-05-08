@@ -1,6 +1,6 @@
 package org.ohrly.core.useCases;
 
-import org.ohrly.core.enums.BehaviorState;
+import org.ohrly.core.enums.BehaviorStateType;
 import org.ohrly.core.services.*;
 import org.ohrly.core.valueObjects.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +13,7 @@ import java.util.List;
 public class CalculateBehaviorKpiUseCase {
 
     @Autowired
-    private BehaviorAnalyzerService analyzer;
+    private FlowBehaviorAnalyzerService analyzer;
 
     @Autowired
     private BehaviorPatternExtractorService patternExtractor;
@@ -28,8 +28,8 @@ public class CalculateBehaviorKpiUseCase {
     private BehaviorKpiMessageBuilderService messageBuilder;
 
     public BehaviorKpi calculate(
-            List<DailyContextMetric> metrics,
-            Baseline baseline,
+            List<DailyFlowMetric> metrics,
+            FlowBaseline baseline,
             FlowBehaviorPolicy policy
     ) {
         if (baseline == null) {
@@ -38,51 +38,54 @@ public class CalculateBehaviorKpiUseCase {
 
         if (policy == null) {
             policy = FlowBehaviorPolicy.defaultFor(
-                    baseline.context().toString(),
-                    baseline.context().toString()
+                    baseline.context().flowId(),
+                    baseline.context().flowId()
             );
         }
 
         if (metrics == null || metrics.isEmpty()) {
             BehaviorPrecedence precedence = BehaviorPrecedence.empty(
                     baseline.context(),
+                    baseline.metricName(),
                     "Sem histórico suficiente para avaliar precedência comportamental."
             );
 
             return BehaviorKpi.empty(
                     baseline.context(),
-                    baseline.average(),
+                    baseline.metricName(),
+                    baseline.expectedValue(),
                     "Sem métricas suficientes para análise.",
                     precedence
             );
         }
 
-        List<DailyContextMetric> orderedMetrics = metrics.stream()
-                .sorted(Comparator.comparing(DailyContextMetric::date))
+        List<DailyFlowMetric> orderedMetrics = metrics.stream()
+                .sorted(Comparator.comparing(DailyFlowMetric::date))
                 .toList();
 
-        BehaviorState state = analyzer.analyze(
+        BehaviorStateType state = analyzer.analyze(
                 orderedMetrics,
                 baseline,
                 policy
         );
 
-        DailyContextMetric latest = orderedMetrics.get(orderedMetrics.size() - 1);
+        DailyFlowMetric latest = orderedMetrics.getLast();
 
-        double expectedAverage = baseline.average();
-        double currentAverage = latest.averageApprovalTime();
+        double expectedValue = baseline.expectedValue();
+        double currentValue = latest.averageValue();
 
-        double deviationMinutes = currentAverage - expectedAverage;
+        double deviationValue = currentValue - expectedValue;
 
-        double deviationRatio = expectedAverage > 0
-                ? currentAverage / expectedAverage
+        double deviationRatio = expectedValue > 0
+                ? currentValue / expectedValue
                 : 0;
 
         BehaviorImpact impact = impactCalculator.calculate(
                 orderedMetrics,
-                expectedAverage,
+                expectedValue,
                 state,
-                policy
+                policy,
+                baseline.metricName()
         );
 
         List<BehaviorPattern> historicalPatterns = patternExtractor.extract(
@@ -100,9 +103,10 @@ public class CalculateBehaviorKpiUseCase {
 
         String message = messageBuilder.build(
                 baseline.context(),
+                baseline.metricName(),
                 state,
-                expectedAverage,
-                currentAverage,
+                expectedValue,
+                currentValue,
                 deviationRatio,
                 impact,
                 precedence
@@ -110,17 +114,18 @@ public class CalculateBehaviorKpiUseCase {
 
         return new BehaviorKpi(
                 baseline.context(),
+                baseline.metricName(),
                 state,
-                expectedAverage,
-                currentAverage,
-                deviationMinutes,
+                expectedValue,
+                currentValue,
+                deviationValue,
                 deviationRatio,
                 impact.durationDays(),
-                impact.impactedOrders(),
-                impact.excessApprovalMinutes(),
+                impact.impactedEvents(),
+                impact.excessValue(),
                 message,
                 precedence,
-                impact.impactedPaymentValue()
+                impact.impactedValue()
         );
     }
 }

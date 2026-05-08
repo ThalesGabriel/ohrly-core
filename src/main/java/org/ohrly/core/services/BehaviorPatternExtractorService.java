@@ -11,8 +11,8 @@ import java.util.List;
 public class BehaviorPatternExtractorService {
 
     public List<BehaviorPattern> extract(
-            List<DailyContextMetric> metrics,
-            Baseline baseline,
+            List<DailyFlowMetric> metrics,
+            FlowBaseline baseline,
             FlowBehaviorPolicy policy
     ) {
         if (baseline == null) {
@@ -21,30 +21,33 @@ public class BehaviorPatternExtractorService {
 
         if (policy == null) {
             policy = FlowBehaviorPolicy.defaultFor(
-                    baseline.context().toString(),
-                    baseline.context().toString()
+                    baseline.context().flowId(),
+                    baseline.context().flowId()
             );
         }
 
         BehaviorThresholds thresholds = policy.thresholds();
 
-        int lookbackDays = policy.lookbackPeriods();
+        int lookbackPeriods = policy.lookbackPeriods();
         double criticalMultiplier = thresholds.preIncidentMultiplier();
 
-        if (metrics == null || metrics.size() < lookbackDays + 1 || baseline.average() <= 0) {
+        if (metrics == null ||
+                metrics.size() < lookbackPeriods + 1 ||
+                baseline.expectedValue() <= 0) {
             return List.of();
         }
 
-        List<DailyContextMetric> ordered = metrics.stream()
-                .sorted(Comparator.comparing(DailyContextMetric::date))
+        List<DailyFlowMetric> ordered = metrics.stream()
+                .sorted(Comparator.comparing(DailyFlowMetric::date))
                 .toList();
 
         List<BehaviorPattern> patterns = new ArrayList<>();
 
-        for (int i = lookbackDays; i < ordered.size(); i++) {
-            DailyContextMetric current = ordered.get(i);
+        for (int i = lookbackPeriods; i < ordered.size(); i++) {
+            DailyFlowMetric current = ordered.get(i);
 
-            boolean critical = current.averageApprovalTime() >= baseline.average() * criticalMultiplier;
+            boolean critical =
+                    current.averageValue() >= baseline.expectedValue() * criticalMultiplier;
 
             if (!critical) {
                 continue;
@@ -52,13 +55,14 @@ public class BehaviorPatternExtractorService {
 
             List<Double> ratios = new ArrayList<>();
 
-            for (int j = i - lookbackDays; j < i; j++) {
-                DailyContextMetric previous = ordered.get(j);
-                ratios.add(previous.averageApprovalTime() / baseline.average());
+            for (int j = i - lookbackPeriods; j < i; j++) {
+                DailyFlowMetric previous = ordered.get(j);
+                ratios.add(previous.averageValue() / baseline.expectedValue());
             }
 
             patterns.add(new BehaviorPattern(
                     baseline.context(),
+                    baseline.metricName(),
                     current.date(),
                     ratios
             ));

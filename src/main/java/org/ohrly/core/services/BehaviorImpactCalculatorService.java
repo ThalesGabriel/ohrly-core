@@ -1,7 +1,6 @@
 package org.ohrly.core.services;
 
-import org.ohrly.core.enums.BehaviorState;
-import org.ohrly.core.enums.DayType;
+import org.ohrly.core.enums.BehaviorStateType;
 import org.ohrly.core.valueObjects.*;
 import org.springframework.stereotype.Service;
 
@@ -13,28 +12,29 @@ import java.util.List;
 public class BehaviorImpactCalculatorService {
 
     public BehaviorImpact calculate(
-            List<DailyContextMetric> metrics,
-            double expectedAverage,
-            BehaviorState state,
-            FlowBehaviorPolicy policy
+            List<DailyFlowMetric> metrics,
+            double expectedValue,
+            BehaviorStateType state,
+            FlowBehaviorPolicy policy,
+            String metricName
     ) {
-        if (state == BehaviorState.NORMAL) {
-            return BehaviorImpact.empty();
+        if (state == BehaviorStateType.NORMAL) {
+            return BehaviorImpact.empty(metricName);
         }
 
         BehaviorThresholds thresholds = policy.thresholds();
 
-        double threshold = thresholdFor(state, expectedAverage, thresholds);
+        double threshold = thresholdFor(state, expectedValue, thresholds);
 
-        int durationDays = 0;
-        int impactedOrders = 0;
-        double excessApprovalMinutes = 0;
-        double impactedPaymentValue = 0;
+        int durationPeriods = 0;
+        int impactedSessions = 0;
+        double excessValue = 0;
+        double impactedBusinessValue = 0;
 
         LocalDate expectedDate = null;
 
         for (int i = metrics.size() - 1; i >= 0; i--) {
-            DailyContextMetric metric = metrics.get(i);
+            DailyFlowMetric metric = metrics.get(i);
 
             if (policy.requireConsecutiveness()
                     && expectedDate != null
@@ -42,52 +42,59 @@ public class BehaviorImpactCalculatorService {
                 break;
             }
 
-            if (metric.averageApprovalTime() < threshold) {
+            if (metric.averageValue() < threshold) {
                 break;
             }
 
-            durationDays++;
-            impactedOrders += metric.count();
-            excessApprovalMinutes +=
-                    (metric.averageApprovalTime() - expectedAverage) * metric.count();
-            impactedPaymentValue += metric.totalPaymentValue();
+            durationPeriods++;
+            impactedSessions += metric.count();
 
-            expectedDate = previousExpectedDate(metric.date(), metric.context());
+            excessValue +=
+                    (metric.averageValue() - expectedValue) * metric.count();
+
+            impactedBusinessValue += metric.totalBusinessValue();
+
+            if (policy.requireConsecutiveness()) {
+                expectedDate = previousExpectedDate(metric.date(), metric.context());
+            }
         }
 
-        if (impactedOrders < policy.minimumVolume()) {
-            return BehaviorImpact.empty();
+        if (impactedSessions < policy.minimumVolume()) {
+            return BehaviorImpact.empty(metricName);
         }
 
         return new BehaviorImpact(
-                durationDays,
-                impactedOrders,
-                excessApprovalMinutes,
-                impactedPaymentValue
+                durationPeriods,
+                impactedSessions,
+                excessValue,
+                impactedBusinessValue,
+                metricName
         );
     }
 
     private double thresholdFor(
-            BehaviorState state,
-            double expectedAverage,
+            BehaviorStateType state,
+            double expectedValue,
             BehaviorThresholds thresholds
     ) {
         return switch (state) {
             case PRE_INCIDENT ->
-                    expectedAverage * thresholds.preIncidentMultiplier();
+                    expectedValue * thresholds.preIncidentMultiplier();
 
             case SUSTAINED_DEGRADATION ->
-                    expectedAverage * thresholds.degradationMultiplier();
+                    expectedValue * thresholds.degradationMultiplier();
 
             case ATTENTION ->
-                    expectedAverage * thresholds.attentionMultiplier();
+                    expectedValue * thresholds.attentionMultiplier();
 
             default -> Double.MAX_VALUE;
         };
     }
 
-    private LocalDate previousExpectedDate(LocalDate date, Context context) {
-        if (context.dayType() == DayType.BUSINESS_DAY) {
+    private LocalDate previousExpectedDate(LocalDate date, FlowContext context) {
+        Object dayType = context.dimensions().get("dayType");
+
+        if ("BUSINESS_DAY".equals(String.valueOf(dayType))) {
             LocalDate previous = date.minusDays(1);
 
             while (previous.getDayOfWeek() == DayOfWeek.SATURDAY ||

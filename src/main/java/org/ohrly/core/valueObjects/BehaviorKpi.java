@@ -1,39 +1,60 @@
 package org.ohrly.core.valueObjects;
 
-import org.ohrly.core.enums.BehaviorState;
+import org.ohrly.core.enums.BehaviorStateType;
+import org.ohrly.core.enums.MetricType;
 
 public record BehaviorKpi(
-        Context context,
-        BehaviorState state,
-        double expectedAverage,
-        double currentAverage,
-        double deviationMinutes,
+        FlowContext context,
+        String metricName,
+        BehaviorStateType state,
+
+        double expectedValue,
+        double currentValue,
+
+        double deviationValue,
         double deviationRatio,
-        int durationDays,
-        int impactedOrders,
-        double excessApprovalMinutes,
+
+        int durationPeriods,
+        int impactedSessions,
+
+        double excessValue,
+
         String message,
+
         BehaviorPrecedence precedence,
-        double impactedPaymentValue
+
+        double impactedBusinessValue
 ) {
+
     public static BehaviorKpi empty(
-            Context context,
-            double expectedAverage,
+            FlowContext context,
+            String metricName,
+            double expectedValue,
             String message,
             BehaviorPrecedence precedence
     ) {
+
         return new BehaviorKpi(
                 context,
-                BehaviorState.NORMAL,
-                expectedAverage,
+                metricName,
+
+                BehaviorStateType.NORMAL,
+
+                expectedValue,
+                0,
+
                 0,
                 0,
+
                 0,
                 0,
+
                 0,
-                0,
+
                 message,
+
                 precedence,
+
                 0
         );
     }

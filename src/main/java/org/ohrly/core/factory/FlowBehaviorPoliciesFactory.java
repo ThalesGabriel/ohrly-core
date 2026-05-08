@@ -1,6 +1,6 @@
 package org.ohrly.core.factory;
 
-import org.ohrly.core.enums.FlowSensitivity;
+import org.ohrly.core.enums.FlowSensitivityType;
 import org.ohrly.core.enums.MetricType;
 import org.ohrly.core.valueObjects.BehaviorThresholds;
 import org.ohrly.core.valueObjects.FlowBehaviorPolicy;
@@ -15,8 +15,8 @@ public class FlowBehaviorPoliciesFactory {
         return new FlowBehaviorPolicy(
                 flowId,
                 "Checkout",
-                FlowSensitivity.AGGRESSIVE,
-                true,
+                FlowSensitivityType.AGGRESSIVE,
+                false,
                 new BehaviorThresholds(
                         2,
                         2,
@@ -28,7 +28,9 @@ public class FlowBehaviorPoliciesFactory {
                         MetricType.APPROVAL_TIME,
                         MetricType.CONVERSION_RATE,
                         MetricType.FAILURE_RATE
-                )
+                ),
+                List.of(),
+                10
         );
     }
 
@@ -36,7 +38,7 @@ public class FlowBehaviorPoliciesFactory {
         return new FlowBehaviorPolicy(
                 flowId,
                 "Payment Approval",
-                FlowSensitivity.BALANCED,
+                FlowSensitivityType.BALANCED,
                 true,
                 new BehaviorThresholds(
                         3,
@@ -49,7 +51,9 @@ public class FlowBehaviorPoliciesFactory {
                         MetricType.APPROVAL_TIME,
                         MetricType.RETRY_RATE,
                         MetricType.FAILURE_RATE
-                )
+                ),
+                List.of(),
+                10
         );
     }
 
@@ -57,7 +61,7 @@ public class FlowBehaviorPoliciesFactory {
         return new FlowBehaviorPolicy(
                 flowId,
                 "Chatbot",
-                FlowSensitivity.CONSERVATIVE,
+                FlowSensitivityType.CONSERVATIVE,
                 true,
                 new BehaviorThresholds(
                         4,
@@ -69,7 +73,9 @@ public class FlowBehaviorPoliciesFactory {
                 List.of(
                         MetricType.FALLBACK_RATE,
                         MetricType.CONVERSION_RATE
-                )
+                ),
+                List.of(),
+                10
         );
     }
 }

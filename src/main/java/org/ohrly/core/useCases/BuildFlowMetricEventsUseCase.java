@@ -1,9 +1,9 @@
 package org.ohrly.core.useCases;
 
-import org.ohrly.core.domain.ApprovalEvent;
-import org.ohrly.core.domain.Order;
-import org.ohrly.core.domain.Payment;
-import org.ohrly.core.factory.ApprovalEventFactory;
+import org.ohrly.core.domain.FlowMetricEvent;
+import org.ohrly.core.olist.Order;
+import org.ohrly.core.olist.Payment;
+import org.ohrly.core.factory.FlowMetricEventFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -12,12 +12,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
-public class BuildApprovalEventsUseCase {
+public class BuildFlowMetricEventsUseCase {
 
     @Autowired
-    private ApprovalEventFactory factory;
+    private FlowMetricEventFactory factory;
 
-    public List<ApprovalEvent> execute(List<Order> orders, List<Payment> payments) {
+    public List<FlowMetricEvent> execute(
+            List<Order> orders,
+            List<Payment> payments
+    ) {
+
         Map<String, Payment> paymentsByOrderId = payments.stream()
                 .collect(Collectors.toMap(
                         Payment::getOrderId,

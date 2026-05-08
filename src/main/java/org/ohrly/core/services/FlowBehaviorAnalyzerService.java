@@ -1,6 +1,6 @@
 package org.ohrly.core.services;
 
-import org.ohrly.core.enums.BehaviorState;
+import org.ohrly.core.enums.BehaviorStateType;
 import org.ohrly.core.enums.DayType;
 import org.ohrly.core.valueObjects.*;
 import org.springframework.stereotype.Service;
@@ -11,62 +11,60 @@ import java.util.Comparator;
 import java.util.List;
 
 @Service
-public class BehaviorAnalyzerService {
+public class FlowBehaviorAnalyzerService {
 
-    public BehaviorState analyze(
-            List<DailyContextMetric> metrics,
-            Baseline baseline,
+    public BehaviorStateType analyze(
+            List<DailyFlowMetric> metrics,
+            FlowBaseline baseline,
             FlowBehaviorPolicy policy
     ) {
         if (metrics == null || metrics.isEmpty() || baseline == null) {
-            return BehaviorState.NORMAL;
+            return BehaviorStateType.NORMAL;
         }
 
         if (policy == null) {
             policy = FlowBehaviorPolicy.defaultFor(
-                    baseline.context().toString(),
-                    baseline.context().toString()
+                    baseline.context().flowId(),
+                    baseline.context().flowId()
             );
         }
 
         BehaviorThresholds thresholds = policy.thresholds();
 
-        List<DailyContextMetric> orderedMetrics = metrics.stream()
-                .sorted(Comparator.comparing(DailyContextMetric::date))
+        List<DailyFlowMetric> orderedMetrics = metrics.stream()
+                .sorted(Comparator.comparing(DailyFlowMetric::date))
                 .toList();
 
-        DailyContextMetric latest = orderedMetrics.getLast();
+        DailyFlowMetric latest = orderedMetrics.getLast();
 
-        double latestAverage = latest.averageApprovalTime();
-        double expectedAverage = baseline.average();
+        double latestAverage = latest.averageValue();
+        double expectedAverage = baseline.expectedValue();
 
         if (expectedAverage <= 0) {
-            return BehaviorState.NORMAL;
+            return BehaviorStateType.NORMAL;
         }
 
-        // Se o estado atual está igual ou melhor que o esperado,
-        // não existe degradação ativa agora.
         if (latestAverage <= expectedAverage) {
-            return BehaviorState.NORMAL;
+            return BehaviorStateType.NORMAL;
         }
 
         if (hasActivePreIncident(orderedMetrics, expectedAverage, policy)) {
-            return BehaviorState.PRE_INCIDENT;
+            return BehaviorStateType.PRE_INCIDENT;
         }
 
         if (hasActiveSustainedDegradation(orderedMetrics, expectedAverage, policy)) {
-            return BehaviorState.SUSTAINED_DEGRADATION;
+            return BehaviorStateType.SUSTAINED_DEGRADATION;
         }
 
         if (latestAverage >= expectedAverage * thresholds.attentionMultiplier()) {
-            return BehaviorState.ATTENTION;
+            return BehaviorStateType.ATTENTION;
         }
 
-        return BehaviorState.NORMAL;
+        return BehaviorStateType.NORMAL;
     }
 
     private boolean hasActivePreIncident(
-            List<DailyContextMetric> metrics,
+            List<DailyFlowMetric> metrics,
             double expectedAverage,
             FlowBehaviorPolicy policy
     ) {
@@ -76,7 +74,7 @@ public class BehaviorAnalyzerService {
         LocalDate expectedDate = null;
 
         for (int i = metrics.size() - 1; i >= 0; i--) {
-            DailyContextMetric metric = metrics.get(i);
+            DailyFlowMetric metric = metrics.get(i);
 
             if (policy.requireConsecutiveness()
                     && expectedDate != null
@@ -85,7 +83,7 @@ public class BehaviorAnalyzerService {
             }
 
             boolean preIncident =
-                    metric.averageApprovalTime() >= expectedAverage * thresholds.preIncidentMultiplier();
+                    metric.averageValue() >= expectedAverage * thresholds.preIncidentMultiplier();
 
             if (!preIncident) {
                 break;
@@ -106,7 +104,7 @@ public class BehaviorAnalyzerService {
     }
 
     private boolean hasActiveSustainedDegradation(
-            List<DailyContextMetric> metrics,
+            List<DailyFlowMetric> metrics,
             double expectedAverage,
             FlowBehaviorPolicy policy
     ) {
@@ -116,7 +114,7 @@ public class BehaviorAnalyzerService {
         LocalDate expectedDate = null;
 
         for (int i = metrics.size() - 1; i >= 0; i--) {
-            DailyContextMetric metric = metrics.get(i);
+            DailyFlowMetric metric = metrics.get(i);
 
             if (policy.requireConsecutiveness()
                     && expectedDate != null
@@ -124,7 +122,8 @@ public class BehaviorAnalyzerService {
                 break;
             }
 
-            boolean degraded = metric.averageApprovalTime() >= expectedAverage * thresholds.degradationMultiplier();
+            boolean degraded =
+                    metric.averageValue() >= expectedAverage * thresholds.degradationMultiplier();
 
             if (!degraded) {
                 break;
@@ -144,8 +143,10 @@ public class BehaviorAnalyzerService {
         return false;
     }
 
-    private LocalDate previousExpectedDate(LocalDate date, Context context) {
-        if (DayType.BUSINESS_DAY.equals(context.dayType())) {
+    private LocalDate previousExpectedDate(LocalDate date, FlowContext context) {
+        Object dayType = context.dimensions().get("dayType");
+
+        if (DayType.BUSINESS_DAY.name().equals(String.valueOf(dayType))) {
             LocalDate previous = date.minusDays(1);
 
             while (previous.getDayOfWeek() == DayOfWeek.SATURDAY ||

@@ -5,5 +5,6 @@ public enum MetricType {
     CONVERSION_RATE,
     FAILURE_RATE,
     RETRY_RATE,
-    FALLBACK_RATE
+    FALLBACK_RATE,
+    COMPLETION_TIME
 }
