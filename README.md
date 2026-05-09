@@ -1,53 +1,119 @@
 # Ohrly
 
-Ohrly é uma plataforma para monitorar a consistência de fluxos digitais críticos após mudanças.
+Ohrly is a behavioral operational intelligence platform designed to detect when digital flows start degrading before incidents become explicit.
 
-## 💡 Problema
+Instead of focusing only on technical failures, Ohrly analyzes whether systems continue behaving as expected operationally over time.
 
-Sistemas modernos possuem múltiplas camadas de validação:
+---
 
-- APM monitora saúde técnica
-- Testes garantem cenários previstos
-- BI mostra impacto agregado
+# 💡 The Problem
 
-Mesmo assim, fluxos críticos frequentemente quebram silenciosamente:
+Modern systems already have:
+- APMs
+- logs
+- dashboards
+- tests
+- BI
 
-- etapas deixam de acontecer
-- caminhos alternativos degradam
-- usuários ficam presos sem erro técnico
-- impacto só aparece tarde demais
+Even so, critical flows still degrade silently.
 
-## 🎯 Solução
+In many cases:
+- the system remains technically healthy
+- no incident is declared
+- SLAs stay green
 
-A Ohrly interpreta o comportamento real das jornadas dos usuários e compara com a expectativa declarada do fluxo.
+But operational behavior already changed:
+- retries increase
+- handoffs grow
+- friction accumulates
+- retention drops progressively
 
-Isso permite detectar:
+Most organizations only notice this too late.
 
-- degradações silenciosas
-- etapas críticas ausentes
-- inconsistências operacionais
-- impacto de mudanças antes de virar incidente
+---
 
-## 🧠 Como funciona
+# 🎯 What Ohrly Does
+
+Ohrly interprets:
+- user journey trajectories
+- behavioral consistency
+- operational friction
+- continuity loss
+- degradation persistence
+
+The platform transforms operational behavior into actionable operational context.
+
+---
+
+# 🧠 Core Concepts
 
 ```text
-Flow Definition → Flow Events → Flow Session → Evaluation → Score
+Events
+→ Behavioral Primitives
+→ Behavioral Constructs
+→ Flow Trajectories
+→ Behavioral Drift
+→ Operational Narratives
 ```
 
-1. O cliente define um fluxo esperado (etapas, ordem, criticidade)
-2. Eventos reais são enviados durante a jornada
-3. A Ohrly reconstrói a sessão completa
-4. O motor avalia consistência da jornada
-5. Um score e insights são gerados
+Examples of behavioral constructs:
+- FRICTION
+- RUPTURE
+- ESCALATION
+- RECOVERY
+- CONTINUITY_LOSS
 
-## 🔍 O que a Ohrly responde
+---
 
-- Esse fluxo está consistente?
-- Qual etapa está falhando?
-- Qual a gravidade?
-- A jornada terminou corretamente?
-- Existe comportamento inesperado?
+# 🔍 What Ohrly Answers
 
-## Estado atual do projeto
+- Is this flow still healthy?
+- Where is continuity breaking?
+- Is friction increasing?
+- Is degradation persisting?
+- What happens if current behavior continues?
 
-Veja detalhes em: releases/v1-core/README.md
+---
+
+# 📈 Example
+
+```text
+The bill_request flow entered functional degradation 3 days ago.
+
+Since then:
+- retries increased
+- human handoff grew
+- abandonment after failure increased
+- operational effort progressively degraded
+```
+
+---
+
+# 🚀 Vision
+
+Ohrly is evolving beyond dashboards and alerts.
+
+The goal is to create a shared operational intelligence layer connecting:
+- engineering
+- product
+- operations
+- business
+
+through continuous interpretation of behavioral system health.
+
+---
+
+# 📦 Project Status
+
+Current implementation includes:
+- flow consistency analysis
+- behavioral primitives
+- trajectory reconstruction
+- behavioral drift analysis
+- operational narrative generation
+
+See release details in:
+
+```text
+releases/
+```
