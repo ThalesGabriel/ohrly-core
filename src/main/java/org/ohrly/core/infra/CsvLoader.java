@@ -1,7 +1,7 @@
 package org.ohrly.core.infra;
 
-import org.ohrly.core.olist.Order;
-import org.ohrly.core.olist.Payment;
+import org.ohrly.core.infra.olist.Order;
+import org.ohrly.core.infra.olist.Payment;
 
 import java.io.BufferedReader;
 import java.io.IOException;
